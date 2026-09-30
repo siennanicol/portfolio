@@ -19,7 +19,7 @@ p{margin:0 0 1em;max-width:68ch}
 .muted{color:var(--muted)}
 
 /* ---------- Fixed navigation ---------- */
-.nav{position:fixed;inset:0 0 auto 0;height:var(--nav-h);z-index:10;display:flex;align-items:center;justify-content:space-between;
+.nav{position:fixed;inset:0 0 auto 0;min-height:64px;z-index:10;display:flex;align-items:center;justify-content:space-between;
   gap:1rem;padding:0 clamp(1rem,4vw,3rem);background:rgba(10,10,10,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .brand{font-family:var(--font-head);font-weight:700;color:var(--text)}
 .nav ul{display:flex;gap:.25rem;list-style:none;margin:0;padding:0;overflow-x:auto}
@@ -57,7 +57,7 @@ section{margin-bottom:3rem}
 /* ---------- Picture frames ---------- */
 .pic{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:transform .25s,border-color .25s}
 .pic:hover{transform:translateY(-4px);border-color:var(--accent)}
-.pic img,.ph{display:block;width:95%;aspect-ratio:4/3;object-fit:cover}
+.pic img,.ph{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
 .ph{display:grid;place-items:center;background:linear-gradient(135deg,#222,#111);color:var(--line)}
 .ph svg{width:38%;fill:currentColor}
 .pic figcaption{padding:.8rem 1rem;font-size:.9rem;color:var(--muted);border-top:1px solid var(--line)}
@@ -133,3 +133,18 @@ footer{border-top:1px solid var(--line);text-align:center;padding:1.5rem;color:v
 .hero-lg .btn.ghost{margin-left:.6rem}
 .hero-lg .pic{width:100%;max-width:460px;justify-self:center}
 .hero-lg .pic figcaption{font-size:1rem}
+
+/* ---------- Mobile fixes: nav never covers content ---------- */
+@media(max-width:800px){
+  :root{--nav-h:104px}
+  .nav{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;height:auto;min-height:0;gap:.4rem .6rem;padding:.5rem 1rem}
+  .brand{order:1}
+  .theme-toggle{order:2;margin:0}
+  .nav ul{order:3;width:100%;flex-wrap:wrap;overflow:visible;gap:.2rem}
+  .nav li a{padding:.35rem .65rem;font-size:.85rem}
+  .hero-lg{grid-template-columns:1fr;min-height:auto;gap:2rem}
+  .hero-lg .pic{max-width:340px;justify-self:start}
+  .hero-lg .btn{margin:.3rem .5rem .3rem 0}
+  .hero-lg .btn.ghost{margin-left:0}
+  .site-title{line-height:1.25}
+}
