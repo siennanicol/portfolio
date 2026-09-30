@@ -1,95 +1,150 @@
-(() => {
-  'use strict';
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ---------- Tokens ---------- */
+:root{
+  --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --line:#2e2e2e;
+  --text:#f2f2f2; --muted:#a3a3a3; --accent:#ffffff; --accent-2:#bdbdbd;
+  --radius:14px; --nav-h:64px;
+  --font-head:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.65;padding-top:var(--nav-h)}
+img,svg{max-width:100%}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--font-head);line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,5vw,3.2rem)} h2{font-size:1.7rem} h3{font-size:1.15rem}
+p{margin:0 0 1em;max-width:68ch}
+.muted{color:var(--muted)}
 
-  /* 1. Scroll progress bar + nav shadow */
-  const bar = document.createElement('div');
-  bar.className = 'progress';
-  document.body.appendChild(bar);
-  const nav = document.querySelector('.nav');
-  const onScroll = () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
-    if (nav) nav.classList.toggle('scrolled', window.scrollY > 10);
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+/* ---------- Fixed navigation ---------- */
+.nav{position:fixed;inset:0 0 auto 0;min-height:64px;z-index:10;display:flex;align-items:center;justify-content:space-between;
+  gap:1rem;padding:0 clamp(1rem,4vw,3rem);background:rgba(10,10,10,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--font-head);font-weight:700;color:var(--text)}
+.nav ul{display:flex;gap:.25rem;list-style:none;margin:0;padding:0;overflow-x:auto}
+.nav li a{display:block;padding:.45rem .8rem;border-radius:8px;color:var(--muted);white-space:nowrap;font-size:.95rem;transition:background .2s,color .2s}
+.nav li a:hover{background:var(--surface-2);color:var(--text);text-decoration:none}
+.nav li a.active{color:var(--bg);background:var(--accent);font-weight:600}
 
-  /* 2. Typewriter effect on the page heading */
-  const title = document.querySelector('.page-title');
-  if (title && !reduce) {
-    const text = title.textContent.trim();
-    title.setAttribute('aria-label', text);
-    title.textContent = '';
-    title.classList.add('typing');
-    let i = 0;
-    const type = () => {
-      title.textContent = text.slice(0, ++i);
-      if (i < text.length) setTimeout(type, 35);
-      else setTimeout(() => title.classList.remove('typing'), 1500);
-    };
-    setTimeout(type, 300);
-  }
+/* ---------- Banner + title (every page) ---------- */
+.banner{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+  background:linear-gradient(120deg,#111 0%,#1e1e1e 55%,#151515 100%);padding:clamp(2rem,6vw,4rem) clamp(1rem,4vw,3rem)}
+.banner::before{content:"";position:absolute;inset:0;opacity:.35;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:36px 36px;
+  mask-image:linear-gradient(90deg,transparent,#000 80%)}
+.banner-inner{position:relative;max-width:1100px;margin:0 auto}
+.site-title{font-family:var(--font-head);font-size:clamp(1.8rem,4.5vw,2.8rem);margin:0}
+.site-title span{color:var(--accent)}
+.page-title{margin:.3rem 0 0;color:var(--muted);font-size:1.1rem}
 
-  /* 3. Reveal on scroll, staggered */
-  const targets = document.querySelectorAll(
-    'main h2, main .card, main .pic, main blockquote, main .table-wrap, main .timeline li, main .tags'
-  );
-  if (!reduce && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        const el = e.target;
-        el.classList.add('in');
-        io.unobserve(el);
-        // remove reveal classes afterwards so normal hover effects are untouched
-        setTimeout(() => {
-          el.classList.remove('reveal', 'in');
-          el.style.removeProperty('--d');
-        }, 1200);
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+/* ---------- Layout ---------- */
+main{max-width:1100px;margin:0 auto;padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,3rem)}
+section{margin-bottom:3rem}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:2.5rem;align-items:center;animation:rise .8s ease both}
+.split{display:grid;grid-template-columns:1fr 1.4fr;gap:2rem;align-items:start}
+.grid{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.two-col{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 
-    targets.forEach((el) => {
-      const siblings = [...el.parentElement.children].filter((c) => c.matches(targets.length ? 'main .card, main .pic, main .timeline li' : '*'));
-      const idx = siblings.indexOf(el);
-      el.style.setProperty('--d', (idx > 0 ? Math.min(idx, 5) * 0.09 : 0) + 's');
-      el.classList.add('reveal');
-      io.observe(el);
-    });
-  }
+/* ---------- Cards ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:1.4rem;transition:transform .25s,border-color .25s,box-shadow .25s}
+.card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.card p{margin-bottom:0;color:var(--muted)}
+.feature{border-left:3px solid var(--accent)}
+.feature.alt{border-left-color:var(--accent-2)}
 
-  /* 4. Cursor spotlight on cards and picture frames */
-  if (!reduce && window.matchMedia('(pointer: fine)').matches) {
-    document.querySelectorAll('.card, .pic').forEach((el) => {
-      el.addEventListener('pointermove', (ev) => {
-        const r = el.getBoundingClientRect();
-        el.style.setProperty('--mx', ev.clientX - r.left + 'px');
-        el.style.setProperty('--my', ev.clientY - r.top + 'px');
-      });
-    });
-  }
+/* ---------- Picture frames ---------- */
+.pic{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:transform .25s,border-color .25s}
+.pic:hover{transform:translateY(-4px);border-color:var(--accent)}
+.pic img,.ph{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.ph{display:grid;place-items:center;background:linear-gradient(135deg,#222,#111);color:var(--line)}
+.ph svg{width:38%;fill:currentColor}
+.pic figcaption{padding:.8rem 1rem;font-size:.9rem;color:var(--muted);border-top:1px solid var(--line)}
+.pic.portrait .ph,.pic.portrait img{aspect-ratio:3/4}
 
-  /* 5. Dark / light mode toggle */
-  const root = document.documentElement;
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'theme-toggle';
-  const setLabel = () => {
-    const light = root.getAttribute('data-theme') === 'light';
-    btn.textContent = light ? '\u263E Dark' : '\u2600 Light';
-    btn.setAttribute('aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
-  };
-  btn.addEventListener('click', () => {
-    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    if (!reduce) {
-      root.classList.add('theme-anim');
-      setTimeout(() => root.classList.remove('theme-anim'), 400);
-    }
-    root.setAttribute('data-theme', next);
-    try { localStorage.setItem('theme', next); } catch (e) {}
-    setLabel();
-  });
-  setLabel();
-  if (nav) nav.appendChild(btn);
-})();
+/* ---------- Quote, tables, lists ---------- */
+blockquote{margin:0;padding:1.2rem 1.5rem;border-left:4px solid var(--accent-2);background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;font-size:1.2rem;font-family:var(--font-head)}
+blockquote cite{display:block;margin-top:.5rem;font-size:.9rem;color:var(--muted);font-style:normal}
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--radius);overflow:hidden}
+th,td{padding:.8rem 1rem;text-align:left;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-family:var(--font-head);width:34%}
+tr:last-child td,tr:last-child th{border-bottom:0}
+tbody tr{transition:background .2s} tbody tr:hover{background:var(--surface-2)}
+.table-wrap{overflow-x:auto}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;padding:0;list-style:none;margin:0}
+.tags li{padding:.3rem .8rem;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:.9rem;transition:border-color .2s,color .2s}
+.tags li:hover{border-color:var(--accent);color:var(--accent)}
+.timeline{list-style:none;margin:0;padding:0 0 0 1.2rem;border-left:2px solid var(--line)}
+.timeline li{position:relative;padding:0 0 1.4rem 1rem}
+.timeline li::before{content:"";position:absolute;left:-1.72rem;top:.5rem;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.btn{display:inline-block;padding:.7rem 1.4rem;border-radius:10px;background:var(--accent);color:var(--bg);font-weight:600;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,255,255,.3);text-decoration:none}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line);margin-left:.5rem}
+.btn.ghost:hover{border-color:var(--accent);box-shadow:none}
+footer{border-top:1px solid var(--line);text-align:center;padding:1.5rem;color:var(--muted);font-size:.9rem}
+
+/* ---------- Responsive ---------- */
+@media(max-width:800px){
+  .hero,.split{grid-template-columns:1fr}
+  .nav{flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding-top:.2rem}
+  :root{--nav-h:88px}
+  .nav ul{width:100%}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+/* ---------- JS-powered animation ---------- */
+.progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:20;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.nav.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.typing::after{content:"";display:inline-block;width:2px;height:1.1em;margin-left:3px;vertical-align:-.15em;background:var(--accent);animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.js .reveal{transition:opacity .7s ease var(--d,0s),transform .7s ease var(--d,0s),border-color .25s,box-shadow .25s}
+.js .reveal:not(.in){opacity:0;transform:translateY(24px)}
+.card,.pic{position:relative;--mx:50%;--my:50%}
+.card::after,.pic::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(220px circle at var(--mx) var(--my),rgba(255,255,255,.16),transparent 70%)}
+.card:hover::after,.pic:hover::after{opacity:1}
+
+/* ---------- Photo frames: put your image in the <img src="..."> ---------- */
+.frame{position:relative}
+.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pic.wide .ph{aspect-ratio:16/9}
+
+/* ---------- Dark / light mode ---------- */
+.theme-toggle{font:inherit;font-size:.9rem;cursor:pointer;white-space:nowrap;padding:.4rem .9rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);transition:border-color .2s,transform .2s}
+.theme-toggle:hover{border-color:var(--accent);transform:translateY(-1px)}
+.theme-anim *{transition:background-color .3s ease,color .3s ease,border-color .3s ease!important}
+@media(max-width:800px){.theme-toggle{margin:.3rem 0}}
+
+:root[data-theme="light"]{--bg:#fafafa;--surface:#ffffff;--surface-2:#f0f0f0;--line:#d9d9d9;--text:#111111;--muted:#555555;--accent:#111111;--accent-2:#666666}
+[data-theme="light"] .nav{background:rgba(250,250,250,.92)}
+[data-theme="light"] .nav.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.1)}
+[data-theme="light"] .banner{background:linear-gradient(120deg,#f4f4f4 0%,#e8e8e8 55%,#f1f1f1 100%)}
+[data-theme="light"] .ph{background:linear-gradient(135deg,#e6e6e6,#d2d2d2);color:#b5b5b5}
+[data-theme="light"] .card:hover{box-shadow:0 10px 30px rgba(0,0,0,.12)}
+[data-theme="light"] .btn:hover{box-shadow:0 8px 20px rgba(0,0,0,.2)}
+[data-theme="light"] .card::after,[data-theme="light"] .pic::after{background:radial-gradient(220px circle at var(--mx) var(--my),rgba(0,0,0,.07),transparent 70%)}
+
+/* ---------- Bigger Home hero ---------- */
+.hero-lg{min-height:65vh;grid-template-columns:1.1fr 1fr;gap:3rem}
+.hero-lg h2{font-size:clamp(2.4rem,5.5vw,4rem);margin-bottom:.5em}
+.hero-lg p{font-size:clamp(1.15rem,2vw,1.4rem);line-height:1.7;color:var(--muted);max-width:36ch}
+.hero-lg .btn{padding:.95rem 1.9rem;font-size:1.1rem;margin-top:.5rem}
+.hero-lg .btn.ghost{margin-left:.6rem}
+.hero-lg .pic{width:100%;max-width:460px;justify-self:center}
+.hero-lg .pic figcaption{font-size:1rem}
+
+/* ---------- Mobile fixes: nav never covers content ---------- */
+@media(max-width:800px){
+  :root{--nav-h:104px}
+  .nav{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;height:auto;min-height:0;gap:.4rem .6rem;padding:.5rem 1rem}
+  .brand{order:1}
+  .theme-toggle{order:2;margin:0}
+  .nav ul{order:3;width:100%;flex-wrap:wrap;overflow:visible;gap:.2rem}
+  .nav li a{padding:.35rem .65rem;font-size:.85rem}
+  .hero-lg{grid-template-columns:1fr;min-height:auto;gap:2rem}
+  .hero-lg .pic{max-width:340px;justify-self:start}
+  .hero-lg .btn{margin:.3rem .5rem .3rem 0}
+  .hero-lg .btn.ghost{margin-left:0}
+  .site-title{line-height:1.25}
+}
