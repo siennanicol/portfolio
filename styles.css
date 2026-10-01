@@ -151,3 +151,37 @@ button.btn{font:inherit;font-weight:600;cursor:pointer;border:0}
 .btn.ghost.small{font-size:.9rem}
 .note{font-size:.9rem;margin-top:1rem}
 .drive-frame{width:100%;height:560px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+
+/* ---------- PHONE FIX (ilagay sa pinakadulo) ---------- */
+@media(max-width:800px){
+  body{padding-top:0}
+
+  /* hindi na fixed ang taas; sumusunod sa laman */
+  .nav{
+    position:sticky;top:0;
+    height:auto;
+    flex-direction:row;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:.4rem .8rem;
+    padding:.6rem 1rem;
+  }
+  .brand{order:1}
+  .theme-toggle{order:2;margin:0}
+
+  /* ang links, bababa sa sariling row imbes na mag-scroll */
+  .nav ul{
+    order:3;
+    width:100%;
+    flex-wrap:wrap;
+    overflow:visible;
+  }
+  .nav li a{padding:.4rem .7rem;font-size:.9rem}
+
+  /* Home hero at iba pa: isang column sa phone */
+  .hero,.hero-lg,.split{grid-template-columns:1fr}
+  .hero-lg{min-height:0;gap:1.5rem}
+  .hero-lg p{max-width:none}
+  .btn.ghost,.hero-lg .btn.ghost{margin-left:0}
+}
