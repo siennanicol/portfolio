@@ -92,13 +92,4 @@
   });
   setLabel();
   if (nav) nav.appendChild(btn);
-
-  /* 6. Keep content below the fixed nav (fixes overlap on phones) */
-  if (nav) {
-    const setNavH = () => root.style.setProperty('--nav-h', nav.offsetHeight + 'px');
-    setNavH();
-    window.addEventListener('resize', setNavH);
-    if ('ResizeObserver' in window) new ResizeObserver(setNavH).observe(nav);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(setNavH);
-  }
 })();
