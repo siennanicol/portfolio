@@ -34,32 +34,73 @@
   <h2>My Activities</h2>
   <p class="muted">Here are my finished activities.</p>
 
-  <div class="grid">
-
-    <!-- Activity with a PICTURE: replace PICTURE-NAME.jpg with your exact file name -->
-    <div class="card">
-      <img class="act-img" src="activities/PICTURE-NAME.jpg" alt="Activity title">
-      <h3>Activity title</h3>
-      <p>Write a short description of this activity here.</p>
-      <div class="act-actions">
-        <a class="btn small" href="activities/PICTURE-NAME.jpg" target="_blank">Open</a>
-      </div>
-    </div>
-
-    <!-- Activity with a PDF / Word / PowerPoint FILE: replace FILE-NAME.pdf -->
-    <div class="card">
-      <div class="file-badge">PDF</div>
-      <h3>Activity title</h3>
-      <p>Write a short description of this activity here.</p>
-      <div class="act-actions">
-        <a class="btn small" href="activities/FILE-NAME.pdf" target="_blank">Open</a>
-      </div>
-    </div>
-
-    <!-- For another activity: copy one whole <div class="card"> ... </div> and paste it here -->
-
-  </div>
+  <p class="muted" id="act-status">Loading activities...</p>
+  <div class="grid" id="activity-grid"></div>
 </section>
 </main>
+<script>
+/* Auto-lists every file inside the "activities" folder of the GitHub repo.
+   Upload a file there and it appears here by itself, using the file name as the title. */
+(function () {
+  var USER = "siennanicol", REPO = "portfolio", FOLDER = "activities";
+  var grid = document.getElementById("activity-grid");
+  var status = document.getElementById("act-status");
+  var IMG = ["jpg", "jpeg", "png", "gif", "webp"];
+
+  function nice(name) {
+    return name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+  }
+
+  fetch("https://api.github.com/repos/" + USER + "/" + REPO + "/contents/" + FOLDER)
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (files) {
+      files = files.filter(function (f) {
+        return f.type === "file" && !/^readme\./i.test(f.name);
+      });
+      if (!files.length) { status.textContent = "No activities yet."; return; }
+      status.textContent = files.length + " activit" + (files.length === 1 ? "y" : "ies");
+
+      files.forEach(function (f) {
+        var ext = f.name.split(".").pop().toLowerCase();
+        var url = FOLDER + "/" + encodeURIComponent(f.name);
+        var card = document.createElement("div");
+        card.className = "card";
+
+        if (IMG.indexOf(ext) > -1) {
+          var img = document.createElement("img");
+          img.className = "act-img";
+          img.src = url;
+          img.alt = nice(f.name);
+          img.loading = "lazy";
+          card.appendChild(img);
+        } else {
+          var badge = document.createElement("div");
+          badge.className = "file-badge";
+          badge.textContent = ext.toUpperCase();
+          card.appendChild(badge);
+        }
+
+        var h3 = document.createElement("h3");
+        h3.textContent = nice(f.name);
+        var box = document.createElement("div");
+        box.className = "act-actions";
+        var a = document.createElement("a");
+        a.className = "btn small";
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = "Open";
+        box.appendChild(a);
+
+        card.appendChild(h3);
+        card.appendChild(box);
+        grid.appendChild(card);
+      });
+    })
+    .catch(function () {
+      status.textContent = "Could not load the activities right now. Please refresh the page.";
+    });
+})();
+</script>
 </body>
 </html>
