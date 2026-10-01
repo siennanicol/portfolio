@@ -34,72 +34,163 @@
   <h2>My Activities</h2>
   <p class="muted">Here are my finished activities.</p>
 
+  <div id="owner-zone" hidden>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Add activity files">
+      <strong>Drop my finished activities here</strong>
+      <span class="muted">or click to choose files (photos, PDF, Word, PowerPoint)</span>
+    </div>
+    <input type="file" id="act-files" multiple hidden>
+    <p class="muted" id="owner-msg" role="status"></p>
+  </div>
+
   <p class="muted" id="act-status">Loading activities...</p>
   <div class="grid" id="activity-grid"></div>
+
+  <p class="note">
+    <button class="btn ghost small" id="owner-btn" type="button">Owner login</button>
+    <button class="btn ghost small" id="logout" type="button" hidden>Log out</button>
+  </p>
 </section>
 </main>
 <script>
-/* Auto-lists every file inside the "activities" folder of the GitHub repo.
-   Upload a file there and it appears here by itself, using the file name as the title. */
 (function () {
   var USER = "siennanicol", REPO = "portfolio", FOLDER = "activities";
-  var grid = document.getElementById("activity-grid");
-  var status = document.getElementById("act-status");
-  var IMG = ["jpg", "jpeg", "png", "gif", "webp"];
+  var API = "https://api.github.com/repos/" + USER + "/" + REPO + "/contents/" + FOLDER;
+  var IMG = ["jpg", "jpeg", "png", "gif", "webp"], MAX_MB = 25;
+  var $ = function (id) { return document.getElementById(id); };
+  var grid = $("activity-grid"), status = $("act-status"), msg = $("owner-msg");
+  var zone = $("owner-zone"), drop = $("dropzone"), input = $("act-files");
+  var current = [];
 
-  function nice(name) {
-    return name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+  function token() { try { return localStorage.getItem("gh_token") || ""; } catch (e) { return ""; } }
+  function hdrs() {
+    var h = { Accept: "application/vnd.github+json" };
+    if (token()) h.Authorization = "Bearer " + token();
+    return h;
+  }
+  function nice(n) { return n.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim(); }
+  function owner() { return !!token(); }
+
+  function syncOwnerUI() {
+    zone.hidden = !owner();
+    $("logout").hidden = !owner();
+    $("owner-btn").hidden = owner();
   }
 
-  fetch("https://api.github.com/repos/" + USER + "/" + REPO + "/contents/" + FOLDER)
-    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(function (files) {
-      files = files.filter(function (f) {
-        return f.type === "file" && !/^readme\./i.test(f.name);
-      });
-      if (!files.length) { status.textContent = "No activities yet."; return; }
-      status.textContent = files.length + " activit" + (files.length === 1 ? "y" : "ies");
-
-      files.forEach(function (f) {
-        var ext = f.name.split(".").pop().toLowerCase();
-        var url = FOLDER + "/" + encodeURIComponent(f.name);
-        var card = document.createElement("div");
-        card.className = "card";
-
-        if (IMG.indexOf(ext) > -1) {
-          var img = document.createElement("img");
-          img.className = "act-img";
-          img.src = url;
-          img.alt = nice(f.name);
-          img.loading = "lazy";
-          card.appendChild(img);
-        } else {
-          var badge = document.createElement("div");
-          badge.className = "file-badge";
-          badge.textContent = ext.toUpperCase();
-          card.appendChild(badge);
-        }
-
-        var h3 = document.createElement("h3");
-        h3.textContent = nice(f.name);
-        var box = document.createElement("div");
-        box.className = "act-actions";
-        var a = document.createElement("a");
-        a.className = "btn small";
-        a.href = url;
-        a.target = "_blank";
-        a.rel = "noopener";
-        a.textContent = "Open";
-        box.appendChild(a);
-
-        card.appendChild(h3);
-        card.appendChild(box);
-        grid.appendChild(card);
-      });
-    })
-    .catch(function () {
-      status.textContent = "Could not load the activities right now. Please refresh the page.";
+  function render(files) {
+    grid.innerHTML = "";
+    files = files.filter(function (f) { return f.type === "file" && !/^readme\./i.test(f.name); });
+    current = files;
+    status.textContent = files.length ? files.length + " activit" + (files.length === 1 ? "y" : "ies") : "No activities yet.";
+    files.forEach(function (f) {
+      var ext = f.name.split(".").pop().toLowerCase();
+      var url = FOLDER + "/" + encodeURIComponent(f.name);
+      var card = document.createElement("div");
+      card.className = "card";
+      if (IMG.indexOf(ext) > -1) {
+        var img = document.createElement("img");
+        img.className = "act-img"; img.src = url; img.alt = nice(f.name); img.loading = "lazy";
+        card.appendChild(img);
+      } else {
+        var b = document.createElement("div");
+        b.className = "file-badge"; b.textContent = ext.toUpperCase();
+        card.appendChild(b);
+      }
+      var h3 = document.createElement("h3");
+      h3.textContent = nice(f.name);
+      var box = document.createElement("div");
+      box.className = "act-actions";
+      var a = document.createElement("a");
+      a.className = "btn small"; a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open";
+      box.appendChild(a);
+      if (owner()) {
+        var d = document.createElement("button");
+        d.type = "button"; d.className = "btn ghost small"; d.textContent = "Delete";
+        d.addEventListener("click", function () { remove(f); });
+        box.appendChild(d);
+      }
+      card.append(h3, box);
+      grid.appendChild(card);
     });
+  }
+
+  function load() {
+    fetch(API + "?t=" + Date.now(), { headers: hdrs() })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(render)
+      .catch(function () { status.textContent = "Could not load the activities right now. Please refresh the page."; });
+  }
+
+  function toBase64(file) {
+    return new Promise(function (ok, bad) {
+      var r = new FileReader();
+      r.onload = function () { ok(String(r.result).split(",")[1]); };
+      r.onerror = bad;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function upload(file) {
+    if (file.size > MAX_MB * 1024 * 1024) return Promise.reject(new Error(file.name + " is bigger than " + MAX_MB + " MB."));
+    var name = file.name.trim().replace(/\s+/g, "-");
+    if (current.some(function (f) { return f.name === name; })) name = Date.now() + "-" + name;
+    return toBase64(file).then(function (b64) {
+      var h = hdrs(); h["Content-Type"] = "application/json";
+      return fetch(API + "/" + encodeURIComponent(name), {
+        method: "PUT", headers: h,
+        body: JSON.stringify({ message: "Add activity " + name, content: b64 })
+      });
+    }).then(function (r) {
+      if (r.status === 401 || r.status === 403) throw new Error("Your token is not valid or has no permission. Log out and log in again.");
+      if (!r.ok) throw new Error("Upload failed (" + r.status + ").");
+    });
+  }
+
+  function handle(list) {
+    var files = Array.prototype.slice.call(list), i = 0;
+    if (!files.length) return;
+    (function next() {
+      if (i >= files.length) {
+        msg.textContent = "Done! New files may take 1 to 2 minutes before everyone can open them.";
+        load(); return;
+      }
+      msg.textContent = "Uploading " + (i + 1) + " of " + files.length + "...";
+      upload(files[i++]).then(next).catch(function (e) { msg.textContent = e.message; load(); });
+    })();
+  }
+
+  function remove(f) {
+    if (!confirm("Delete " + f.name + "?")) return;
+    var h = hdrs(); h["Content-Type"] = "application/json";
+    fetch(API + "/" + encodeURIComponent(f.name), {
+      method: "DELETE", headers: h,
+      body: JSON.stringify({ message: "Delete activity " + f.name, sha: f.sha })
+    }).then(function (r) { if (!r.ok) throw new Error(); load(); })
+      .catch(function () { msg.textContent = "Could not delete the file."; });
+  }
+
+  drop.addEventListener("click", function () { input.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("change", function () { handle(input.files); input.value = ""; });
+  ["dragenter", "dragover"].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("drag"); });
+  });
+  ["dragleave", "drop"].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("drag"); });
+  });
+  drop.addEventListener("drop", function (e) { handle(e.dataTransfer.files); });
+
+  $("owner-btn").addEventListener("click", function () {
+    var t = prompt("Paste your GitHub token (only you should have this):");
+    if (t && t.trim()) { try { localStorage.setItem("gh_token", t.trim()); } catch (e) {} syncOwnerUI(); load(); }
+  });
+  $("logout").addEventListener("click", function () {
+    try { localStorage.removeItem("gh_token"); } catch (e) {}
+    msg.textContent = ""; syncOwnerUI(); load();
+  });
+
+  syncOwnerUI();
+  load();
 })();
 </script>
 </body>
