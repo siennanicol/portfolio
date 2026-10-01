@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Story in the Book</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Lora&family=Merriweather&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Global Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Merriweather', serif;
+      background: url("https://uploads.onecompiler.io/454uh429d/1790824834754/picture.jfif") no-repeat center center fixed;
+      background-size: cover;
+      color: #111;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 80px auto;
+      padding: 60px 50px 80px;
+      border-radius: 20px;
+      background: linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.65));
+      backdrop-filter: blur(10px);
+      box-shadow: 0 25px 70px rgba(0,0,0,0.45);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+    }
+
+    /* Inner Glow */
+    .container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      box-shadow: inset 0 0 80px rgba(255,255,255,0.15);
+      pointer-events: none;
+    }
+
+    /* Headings */
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3em;
+      text-align: center;
+      margin-bottom: 15px;
+      color: #2b2b2b;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.25);
+    }
+
+    h2 {
+      font-family: 'Lora', serif;
+      font-size: 2em;
+      margin: 35px 0 20px;
+      color: #333;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      font-family: 'Lora', serif;
+      font-size: 1.5em;
+      margin-top: 50px;
+      color: #444;
+    }
+
+    hr {
+      width: 70%;
+      margin: 15px auto 30px auto;
+      border: 0;
+      height: 1px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    /* Paragraphs */
+    p {
+      text-align: justify;
+      font-size: 1.2em;
+      margin-bottom: 25px;
+      color: #111;
+      letter-spacing: 0.5px;
+    }
+
+    /* Drop-cap first letter */
+    p:first-of-type::first-letter {
+      float: left;
+      font-size: 3.5em;
+      font-weight: bold;
+      margin-right: 12px;
+      line-height: 1;
+      font-family: 'Playfair Display', serif;
+      color: #2b2b2b;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* Author Section */
+    .author {
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    .author img {
+      width: 180px;
+      height: 180px;
+      border-radius: 15%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      margin-bottom: 15px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .author img:hover {
+      transform: scale(1.08);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    .author p {
+      font-size: 1.15em;
+      font-weight: bold;
+      font-style: italic;
+      color: #222;
+	  text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .container { padding: 50px 35px 70px; }
+      h1 { font-size: 2.7em; }
+      h2 { font-size: 1.8em; }
+      h3 { font-size: 1.4em; }
+      p { font-size: 1.1em; }
+    }
+
+    @media (max-width: 600px) {
+      .container { margin: 50px 20px; padding: 35px 20px 60px; }
+      h1 { font-size: 2.3em; }
+      h2 { font-size: 1.5em; }
+      h3 { font-size: 1.2em; }
+      p { font-size: 1em; }
+      p:first-of-type::first-letter { font-size: 3em; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>The Story in the Book</h1>
+    <hr>
+    <h2>Chapter 1</h2>
+
+    <p>
+      Molly had been staring out of her window for about an hour now. On her desk, lying between the
+      copies of <em>Nature, New Scientist</em>, and all the other scientific journals her work had appeared in,
+      was a well-thumbed copy of <em>On The Road</em>. It had been Molly's favourite book since college,
+      and the longer she spent in these four walls the more she felt she needed to be free.
+    </p>
+
+    <p>
+      She had spent the last ten years in this room, sitting under a poster with an Oscar Wilde quote
+      proclaiming that “Work is the refuge of people who have nothing better to do”.
+      Although many considered her pioneering work, unraveling the secrets of the llama
+      <abbr title="Deoxyribonucleic Acid">DNA</abbr>,
+      to be an outstanding achievement, Molly <em>did</em> think she had something better to do.
+    </p>
+
+    <div class="author">
+      <h3>Submitted By:</h3>
+      <img src="https://uploads.onecompiler.io/454uh429d/1790825016568/sienna.jfif" alt="Author Image">
+      <p><b><i>1 Sienna C. Nicol</i></b></p>
+    </div>
+  </div>
+
+</body>
+</html>
