@@ -185,3 +185,5 @@ button.btn{font:inherit;font-weight:600;cursor:pointer;border:0}
   .hero-lg p{max-width:none}
   .btn.ghost,.hero-lg .btn.ghost{margin-left:0}
 }
+
+[hidden]{display:none!important}
