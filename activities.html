@@ -44,7 +44,7 @@
   </div>
 
   <p class="muted" id="act-status">Loading activities...</p>
-  <div class="grid" id="activity-grid"></div>
+  <div id="sections"></div>
 
   <p class="note">
     <button class="btn ghost small" id="owner-btn" type="button">Owner login</button>
@@ -58,7 +58,7 @@
   var API = "https://api.github.com/repos/" + USER + "/" + REPO + "/contents/" + FOLDER;
   var IMG = ["jpg", "jpeg", "png", "gif", "webp"], MAX_MB = 25;
   var $ = function (id) { return document.getElementById(id); };
-  var grid = $("activity-grid"), status = $("act-status"), msg = $("owner-msg");
+  var sections = $("sections"), status = $("act-status"), msg = $("owner-msg");
   var zone = $("owner-zone"), drop = $("dropzone"), input = $("act-files");
   var current = [];
 
@@ -77,40 +77,74 @@
     $("owner-btn").hidden = owner();
   }
 
+  var GROUPS = [
+    { key: "photos", title: "Photos", ext: IMG },
+    { key: "pdf", title: "PDF Files", ext: ["pdf"] },
+    { key: "word", title: "Word Documents", ext: ["doc", "docx"] },
+    { key: "ppt", title: "PowerPoint", ext: ["ppt", "pptx"] },
+    { key: "excel", title: "Excel / Spreadsheets", ext: ["xls", "xlsx", "csv"] },
+    { key: "other", title: "Other Files", ext: [] }
+  ];
+  function extOf(f) { return f.name.split(".").pop().toLowerCase(); }
+  function groupOf(f) {
+    var e = extOf(f);
+    for (var i = 0; i < GROUPS.length - 1; i++) if (GROUPS[i].ext.indexOf(e) > -1) return GROUPS[i].key;
+    return "other";
+  }
+
+  function card(f) {
+    var ext = extOf(f), url = FOLDER + "/" + encodeURIComponent(f.name);
+    var c = document.createElement("div");
+    c.className = "card";
+    if (IMG.indexOf(ext) > -1) {
+      var img = document.createElement("img");
+      img.className = "act-img"; img.src = url; img.alt = nice(f.name); img.loading = "lazy";
+      c.appendChild(img);
+    } else {
+      var b = document.createElement("div");
+      b.className = "file-badge"; b.textContent = ext.toUpperCase();
+      c.appendChild(b);
+    }
+    var h3 = document.createElement("h3");
+    h3.textContent = nice(f.name);
+    var box = document.createElement("div");
+    box.className = "act-actions";
+    var a = document.createElement("a");
+    a.className = "btn small"; a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open";
+    box.appendChild(a);
+    if (owner()) {
+      var d = document.createElement("button");
+      d.type = "button"; d.className = "btn ghost small"; d.textContent = "Delete";
+      d.addEventListener("click", function () { remove(f); });
+      box.appendChild(d);
+    }
+    c.append(h3, box);
+    return c;
+  }
+
   function render(files) {
-    grid.innerHTML = "";
+    sections.innerHTML = "";
     files = files.filter(function (f) { return f.type === "file" && !/^readme\./i.test(f.name); });
     current = files;
-    status.textContent = files.length ? files.length + " activit" + (files.length === 1 ? "y" : "ies") : "No activities yet.";
-    files.forEach(function (f) {
-      var ext = f.name.split(".").pop().toLowerCase();
-      var url = FOLDER + "/" + encodeURIComponent(f.name);
-      var card = document.createElement("div");
-      card.className = "card";
-      if (IMG.indexOf(ext) > -1) {
-        var img = document.createElement("img");
-        img.className = "act-img"; img.src = url; img.alt = nice(f.name); img.loading = "lazy";
-        card.appendChild(img);
+    status.textContent = files.length ? files.length + " file" + (files.length === 1 ? "" : "s") + " in total" : "No activities yet.";
+    GROUPS.forEach(function (g) {
+      var items = files.filter(function (f) { return groupOf(f) === g.key; });
+      if (g.key === "other" && !items.length) return;
+      var sec = document.createElement("section");
+      var h2 = document.createElement("h2");
+      h2.textContent = g.title + " (" + items.length + ")";
+      sec.appendChild(h2);
+      if (!items.length) {
+        var p = document.createElement("p");
+        p.className = "muted"; p.textContent = "Nothing here yet.";
+        sec.appendChild(p);
       } else {
-        var b = document.createElement("div");
-        b.className = "file-badge"; b.textContent = ext.toUpperCase();
-        card.appendChild(b);
+        var gr = document.createElement("div");
+        gr.className = "grid";
+        items.forEach(function (f) { gr.appendChild(card(f)); });
+        sec.appendChild(gr);
       }
-      var h3 = document.createElement("h3");
-      h3.textContent = nice(f.name);
-      var box = document.createElement("div");
-      box.className = "act-actions";
-      var a = document.createElement("a");
-      a.className = "btn small"; a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open";
-      box.appendChild(a);
-      if (owner()) {
-        var d = document.createElement("button");
-        d.type = "button"; d.className = "btn ghost small"; d.textContent = "Delete";
-        d.addEventListener("click", function () { remove(f); });
-        box.appendChild(d);
-      }
-      card.append(h3, box);
-      grid.appendChild(card);
+      sections.appendChild(sec);
     });
   }
 
